@@ -31,6 +31,29 @@
 $ yarn install
 ```
 
+## Local database (PostgreSQL)
+
+PostgreSQL for development is defined in `docker-compose.yml`. Credentials there are **for local use only**; do not reuse them in staging or production.
+
+```bash
+# start Postgres in the background (requires Docker)
+$ yarn db:up
+
+# follow container logs
+$ yarn db:logs
+
+# stop containers (named volume keeps data)
+$ yarn db:down
+```
+
+Copy environment variables for the app:
+
+```bash
+$ cp .env.example .env
+```
+
+`DATABASE_URL` in `.env.example` matches the Compose defaults (`promocode` / `promocode_dev` / database `promocode`).
+
 ## Compile and run the project
 
 ```bash
