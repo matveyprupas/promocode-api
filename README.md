@@ -35,6 +35,24 @@ $ yarn install
 
 PostgreSQL for development is defined in `docker-compose.yml`. Credentials there are **for local use only**; do not reuse them in staging or production.
 
+### From zero: env, schema, and mock data
+
+```bash
+$ cp .env.example .env
+$ yarn db:start
+$ yarn db:setup
+```
+
+`yarn db:start` is an alias for `yarn db:up` (both run `docker compose up -d`). `yarn db:setup` runs `prisma migrate dev` to create or update tables, then `prisma db seed` to load mock promocodes (exhausted, expired, and valid variants for manual testing). The seed command is configured in `prisma.config.ts` (Prisma 7); `package.json` includes a matching `prisma.seed` entry for reference.
+
+To wipe the database and reapply migrations plus seed:
+
+```bash
+$ yarn db:reset
+```
+
+### Docker helpers
+
 ```bash
 # start Postgres in the background (requires Docker)
 $ yarn db:up
@@ -44,12 +62,6 @@ $ yarn db:logs
 
 # stop containers (named volume keeps data)
 $ yarn db:down
-```
-
-Copy environment variables for the app:
-
-```bash
-$ cp .env.example .env
 ```
 
 `DATABASE_URL` in `.env.example` matches the Compose defaults (`promocode` / `promocode_dev` / database `promocode`).
