@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Promocode {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code            String   @unique
+  /// 1–100 (%). Same rule as DB constraint `discount_check`.
+  discount        Int
+  /// Must be > 0. Same rule as DB constraint `limit_check`.
+  limit           Int
+  activationCount Int      @default(0)
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt @default(now())
+
+  activations Activation[]
+
+  @@map("promocodes")
+}
+
+model Activation {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  promocodeId String   @db.Uuid
+  /// Case-insensitive in PostgreSQL (`citext` + extension in migration).
+  email       String   @db.Citext
+  activatedAt DateTime @default(now())
+
+  promocode Promocode @relation(fields: [promocodeId], references: [id], onDelete: Cascade)
+
+  @@unique([promocodeId, email])
+  @@map("activations")
+}
