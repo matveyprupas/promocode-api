@@ -64,6 +64,7 @@ export class PromocodesController {
     description: 'Validation error',
     type: ApiErrorDto,
   })
+  @HttpCode(HttpStatus.CREATED)
   create(@Body() dto: CreatePromocodeDto): Promise<PromocodeEntity> {
     return this.promocodesService.create(dto);
   }
