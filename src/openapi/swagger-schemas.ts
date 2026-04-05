@@ -46,6 +46,17 @@ export class ActivatePromocodeResponseDto {
   discount: number;
 }
 
+export class DeletePromocodeResponseDto {
+  @ApiProperty({
+    example:
+      'Promocode SUMMER2026 was permanently deleted from the database.',
+  })
+  message: string;
+
+  @ApiProperty({ type: PromocodeEntity })
+  deleted: PromocodeEntity;
+}
+
 export class PromocodeListResponseDto {
   @ApiProperty({ type: [PromocodeEntity] })
   items: PromocodeEntity[];

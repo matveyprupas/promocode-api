@@ -17,7 +17,6 @@ import {
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiExtraModels,
-  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -28,6 +27,7 @@ import {
 import {
   ActivatePromocodeResponseDto,
   ApiErrorDto,
+  DeletePromocodeResponseDto,
   PromocodeEntity,
   PromocodeListResponseDto,
 } from '../openapi/swagger-schemas';
@@ -42,6 +42,7 @@ import { PromocodesService } from './promocodes.service';
   PromocodeEntity,
   ApiErrorDto,
   ActivatePromocodeResponseDto,
+  DeletePromocodeResponseDto,
   PromocodeListResponseDto,
   UpdatePromocodeDto,
 )
@@ -159,15 +160,19 @@ export class PromocodesController {
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete promocode' })
   @ApiParam({ name: 'id', format: 'uuid' })
-  @ApiNoContentResponse({ description: 'Deleted' })
+  @ApiOkResponse({
+    description: 'Promocode permanently removed from the database',
+    type: DeletePromocodeResponseDto,
+  })
   @ApiNotFoundResponse({
     description: 'Promocode not found',
     type: ApiErrorDto,
   })
-  remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<DeletePromocodeResponseDto> {
     return this.promocodesService.remove(id);
   }
 }
