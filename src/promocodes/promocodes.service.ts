@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, Promocode } from '@prisma/client';
 import {
   ActivatePromocodeResponseDto,
@@ -124,15 +129,55 @@ export class PromocodesService {
     }
   }
 
-  activate(
+  async activate(
     id: string,
     dto: ActivatePromocodeDto,
   ): Promise<ActivatePromocodeResponseDto> {
-    void id;
-    void dto;
-    return Promise.resolve({
-      message: 'Promocode activated successfully',
-      discount: 0,
+    return this.prisma.$transaction(async (tx) => {
+      const promos = await tx.$queryRaw<Promocode[]>`
+        SELECT *
+        FROM "promocodes"
+        WHERE id = ${id}::uuid
+        FOR UPDATE
+      `;
+      const promo = promos[0];
+
+      if (!promo) {
+        throw new NotFoundException('Promocode not found');
+      }
+
+      if (promo.expiresAt < new Date()) {
+        throw new BadRequestException('Promocode expired');
+      }
+
+      if (promo.activationCount >= promo.limit) {
+        throw new BadRequestException('Activation limit reached');
+      }
+
+      const existingActivation = await tx.activation.findUnique({
+        where: {
+          promocodeId_email: { promocodeId: id, email: dto.email },
+        },
+      });
+      if (existingActivation) {
+        throw new ConflictException(
+          'This email has already activated this promocode',
+        );
+      }
+
+      await tx.activation.create({
+        data: { promocodeId: id, email: dto.email },
+      });
+
+      await tx.promocode.update({
+        where: { id },
+        data: { activationCount: { increment: 1 } },
+      });
+
+      return {
+        message: 'Promocode activated successfully',
+        discount: promo.discount,
+      };
     });
   }
 }
